@@ -71,7 +71,8 @@ END;
 create procedure PlaceBid
 	@ItemID int,
 	@UserID int,
-	@BidAmount decimal(10,2)
+	@BidAmount decimal(10,2),
+	@CurrentPrice decimal(10,2)=0.0
 As
 BEGIN
 	insert into Bids Values(
@@ -79,9 +80,22 @@ BEGIN
 	@UserID,
 	@BidAmount
 	);
-	update Items 
-	set CurrentPrice=@BidAmount 
+	select @CurrentPrice= CurrentPrice 
+	from Items 
 	where ItemID=@ItemID;
+
+	IF @CurrentPrice<@BidAmount
+	begin
+		update Items 
+		set CurrentPrice=@BidAmount 
+		where ItemID=@ItemID;
+
+		insert into Notifications values(
+		@UserID,
+		'you were outbided',
+		0
+		);
+	end
 END;
 
 
